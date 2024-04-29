@@ -31,7 +31,7 @@ def compute_start_of_root_directory(boot_sector):
 
 def getRootFiles(boot_sector):
     root_dir_start = boot_sector.root_dir_base
-    root_dir_size = boot_sector.root_dir_entries * 32  # Each directory entry is 32 bytes
+    root_dir_size = boot_sector.root_dir_entries * 32
     files = []
 
     with open('disk1.img', 'rb') as img:
@@ -40,18 +40,15 @@ def getRootFiles(boot_sector):
 
         for i in range(boot_sector.root_dir_entries):
             entry = root_dir_data[i * 32:(i + 1) * 32]
-            # Check if the entry is used (not deleted files marked by 0xE5)
+
+            #entry not being used is represented by the bit 0xE5
             if entry[0] == 0xE5:
                 continue
 
-            # Decode and process filename and extension separately
             filename = entry[:8].rstrip(b'\x00').decode('ascii', errors='ignore').strip()
             extension = entry[8:11].rstrip(b'\x00').decode('ascii', errors='ignore').strip()
-
-            # Concatenate filename and extension correctly
             full_filename = f"{filename}.{extension}" if extension else filename
             
-            # Append only if the filename is non-empty and not a placeholder
             if filename and not all(c == '\x00' or c == ' ' for c in filename):
                 files.append(full_filename)
 
